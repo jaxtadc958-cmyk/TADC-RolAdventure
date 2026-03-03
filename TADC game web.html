@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Amazing Digital Circus — Historia interactiva</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#d946ef;--muted:#9aa6b2;--glass: rgba(255,255,255,0.04)}
+    *{box-sizing:border-box;font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071026 0%, #09111b 60%);color:#e6eef6;display:flex;align-items:flex-start;justify-content:center;padding:28px}
+    .app{width:100%;max-width:1100px}
+    header{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+    header h1{font-size:20px;margin:0}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:14px;padding:18px;box-shadow:0 6px 24px rgba(4,6,12,0.6);}
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:18px}
+    aside{min-height:420px}
+    .log{height:420px;overflow:auto;padding:12px;background:var(--card);border-radius:10px}
+    .scene{min-height:200px}
+    .choices{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+    button.choice{background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:12px 16px;border-radius:8px;color:inherit;text-align:left;cursor:pointer;font-size:15px}
+    button.choice:hover{background:rgba(217,70,239,0.08)}
+    .meta{font-size:13px;color:var(--muted);margin-top:8px}
+    .character-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .char{padding:10px;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.02)}
+    .controls{display:flex;gap:12px;align-items:center;margin:20px 0;flex-wrap:wrap;justify-content:center}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.1);padding:10px 16px;border-radius:8px;color:inherit;cursor:pointer;font-size:14px}
+    .btn:hover{background:rgba(255,255,255,0.05)}
+    .btn-back{background:#4a5568;color:white;border:none;padding:12px 20px;font-weight:bold}
+    .btn-back:hover{background:#2d3748}
+    .title-row{display:flex;justify-content:space-between;align-items:center}
+    .tiny{font-size:12px;color:var(--muted)}
+    .danger{color:#ff6b6b}
+    footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
+    .desc{white-space:pre-wrap;line-height:1.5}
+    .statline{font-size:13px;color:var(--muted);margin-top:10px}
+    .welcome-summary{margin:16px 0;padding:16px;background:rgba(217,70,239,0.03);border-radius:10px;border:1px solid rgba(217,70,239,0.1)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><rect rx='8' width='100%' height='100%' fill='%23d946ef'/><text x='50%' y='55%' font-size='20' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>AD</text></svg>" alt="logo" style="width:44px;height:44px;border-radius:8px">
+        <div>
+          <h1>The Amazing Digital Circus — Historia interactiva</h1>
+          <div class="tiny">Aventura ramificada: absorbidos al mundo de fantasía realista y mortal</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside>
+        <div class="card">
+          <div class="title-row"><strong>Personajes (pre-absorción)</strong><div class="tiny">Forma original en el Circo Digital</div></div>
+          <div class="character-list" id="charListPre"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="title-row"><strong>Personajes (post-absorción)</strong><div class="tiny">Cuerpos reales en el mundo de fantasía</div></div>
+          <div class="character-list" id="charListPost"></div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="card">
+          <div class="scene" id="scene"></div>
+          <div class="choices" id="choices"></div>
+          <div class="meta" id="meta"></div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="card log" id="log">
+          <div class="tiny"><strong>Registro</strong></div>
+          <div id="logContent" class="desc"></div>
+        </div>
+
+        <footer class="tiny">Historia interactiva basada en The Amazing Digital Circus — puedes editar el script directamente.</footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Personajes pre y post (tus arrays completos)
+    const charactersPre = [
+      {name:'Caine', role:'Ring Master / IA', desc:'Mandíbula flotante con ojos dentro de ésta (uno azul y el otro verde). Es el Ring Master con chaqueta roja con cuello negro, camiseta blanca, pajarita negra, pantalones y botas negras. Guantes blancos y sombrero de copa negra con cinta roja alrededor del sombrero. Es una IA.'},
+      {name:'Gangle', role:'La cinta', desc:'Cinta roja con máscara blanca (una refleja comedia y detrás está la de tragedia; si se rompe la de comedia sale la de tragedia; ambas conectadas a sus emociones, solo siente la emoción de la máscara puesta).'},
+      {name:'Zooble', role:'Juguete desmontable', desc:'Juguete desmontable con cabeza de triángulo isósceles fucsia. Antena en forma de “Y” con rayas blancas y negras a un lado y rayo verde claro al otro. Torso en forma de frijol amarillo con lunares naranjas. Brazos dispares: uno recto naranja con guante amarillo; el otro largo ondulado rojo que conecta a bola rosada, segmento amarillo y garra tipo pinza roja. Piernas dispares: tramo verde menta con articulación púrpura y curva naranja; la otra recta azul con zapato azul. Puede intercambiar y reemplazar partes del cuerpo.'},
+      {name:'Kinger', role:'Ficha rey de ajedrez', desc:'Ficha rey de ajedrez con toga de rey morada (con pelaje blanco y detalles negros en todo el borde). Ojos azules. Manos flotantes cubiertas con guantes blancos.'},
+      {name:'Ragatha', role:'Muñeca de trapo', desc:'Muñeca de trapo con ojo de botón azul. Vestido lila con varios parches, cabello de lana roja con lazo lila detrás de la cabeza.'},
+      {name:'Jax', role:'Conejo / Maestro cerrajero', desc:'Conejo morado con enterizo rosa. Rol de maestro cerrajero. Escleróticas amarillas, pupilas negras alargadas, guantes amarillos (al igual que sus dientes).'},
+      {name:'Pomni', role:'Bufona', desc:'Bufona con pelo corto oscuro (flequillo corto). Ojos con patrón triangular rojo y azul. Ropa de bufón con patrón rojo y azul (también en gorro). Guante azul y el otro rojo (lo mismo con zapatos: color contrario al guante — si guante azul, zapato rojo y viceversa).'}
+    ];
+
+    const charactersPost = [
+      {name:'Caine', role:'Ring Master / DM', desc:'Mandíbula con ojos dentro de su boca (uno azul y el otro verde), tiene un chaleco fino rojo, una corbata roja, una camisa blanca con hombreras, guantes blancos, tiene pantalones negros y zapatos negros. Además tiene un diente de oro.'},
+      {name:'Gangle', role:'La cinta / Hechicera', desc:'Cinta roja, con una máscara blanca (una refleja la comedia y detrás de ésa máscara está la de tragedia, si se rompe la máscara de comedia sale la de tragedia y ambas están conectadas a sus emociones, pero solo siente la emoción de la máscara que tiene puesta), con capa de invierno de color rojo, tiene corazones debajo de sus ojos (un poco por encima de las mejillas), tiene un gran lazo rojo detrás de su cabeza (detrás de la máscara).'},
+      {name:'Zooble', role:'Quimera / Cambiaformas', desc:'Quimera con cabeza de un triángulo isósceles de fucsia, tiene los ojos dispares (el de la derecha tiene la esclerótica amarilla y la pupila es negra con forma de espiral, el de la izquierda es de color negro) y está compuesto de varias partes de monstruos (como un brazo tentáculo, un brazo con una pinza, una cola de dragón mezclada con la de un escorpión, un cuerno de unicornio y al otro lado un cuerno en forma de rayo encima de su cabeza de un triángulo isósceles de color fucsia. Uno a cada lado de su cabeza).'},
+      {name:'Kinger', role:'Pieza rey / Mago', desc:'Pieza rey de ajedrez, con una túnica púrpura claro con ribetes dorados, ornamentada pero no recargada (la túnica cae hasta los tobillos y tiene un panel central decorado con motivos dorados en forma de mariposas y líneas mágicas. Se nota una cintura marcada por un cinturón marrón oscuro con hebilla dorada, de donde cuelgan pequeños frascos y una bolsa de cuero). Encima usa una capa larga color púrpura, de caída pesada y bordes dorados (el interior está forrado con piel blanca, suave y mullida, que cubre los hombros y parte del pecho, aportando un aire regio. La capa se sostiene con dos broches redondos dorados, unidos por cadenas finas que cruzan su pecho. En sí es voluminosa y elegante). Su cintura está ceñida con una faja dorada, donde cuelgan pequeños frascos y talismanes mágicos. Las mangas son amplias y terminan en puños blancos decorativos que sobresalen al mover los brazos, ojos azules y en sus manos lleva guantes blancos con costuras finas. Mano izquierda levantada controlando mariposas mágicas luminosas que revolotean a su alrededor, mano derecha sostiene bastón dorado con gema esférica azul en la punta rodeada por aros metálicos flotantes y espada ceremonial larga (empuñadura dorada con gema violeta en el pomo, hoja de acero plateado claro ancha y pulida, símbolo de guardián).'},
+      {name:'Ragatha', role:'Muñeca guerrera / Sacerdotisa', desc:'Muñeca de trapo con un ojo de botón azul y el otro de color negro (con forma ovalada), con traje de sacerdotisa japonés (túnica blanca superior llamada Hakui que cubre el torso, mangas largas con cordones rojos (sode-kukuri), se ata al frente con cuerdas rojas (muna-himo); debajo kosode; hakama/falda larga roja amplia; obi cinturón rojo). Cabello de lana roja, con un lazo de color blanco detrás de su cabeza. Rellena de algodón.'},
+      {name:'Jax', role:'Cerrajero / Pícaro', desc:'Conejo morado con una chaqueta ajustada color violeta oscuro (casi negro) y una capucha con diseño que cubre parcialmente su cabeza y cuello, dejando visibles sus orejas largas y expresivas. Pantalones anchos del mismo color (menos en la parte de las botas, donde son poco bombachos y ajustados al final), adaptados a su complexión esbelta. Antebrazos con vendas blancas y correas marrón oscuro brillantes, guantes largos con dedos marcados. Botas altas resistentes con suelas curvadas, de tela violeta con vendas marrón oscuro alrededor y dedos visibles. Escleróticas amarillas con pupilas negras alargadas, dientes amarillos. Bolsito morado oscuro con cinturón de cuero en la cintura (para herramientas de robo o viales de veneno), juego de llaves doradas de diferentes tamaños colgando del cinturón, correas cruzando cadera.'},
+      {name:'Pomni', role:'Bufona / Ninja', desc:'Pelo corto (flequillo también corto) y oscuro, patrón en forma de triángulos de color rojo y azul en los ojos. Ropa de ninja oscura (negro o azul muy oscuro) sin mangas, con detalles en azul y rojo. Traje con aberturas en las caderas, sujeto por cinturón (obi) amarillo atado con lazo al frente. Guantes blancos y protectores de antebrazo asimétricos (uno rojo, otro azul). Pantalones tipo ninja ajustados en tobillos con patrón asimétrico (venda/protección azul en una pierna, roja en la otra). Zapatos oscuros con detalles amarillos. Bufanda larga de color púrpura que fluye detrás.'}
+    ];
+
+    // Escenas 
+    const scenes = {
+    start: {
+      title: 'El pasillo y la puerta bug',
+      text: 'Jax caminaba por los pasillos de la carpa, jugueteando con su juego de llaves. De pronto encontró una puerta que nunca había visto: ligeramente rota, con patrones que no pertenecían al resto del código del circo.',
+      choices: [
+        {txt: 'Abrir la puerta (curiosidad)', to:'openDoor'},
+        {txt: 'No tocarla y seguir caminando', to:'ignoreDoor'}
+      ]
+    },
+        ignoreDoor: {
+          title: 'Decisión: Ignorar',
+          text: 'Jax respira y decide seguir el camino. Más tarde se pregunta si lo que había dentro habría cambiado algo... pero la vida en la carpa continúa.',
+          choices: [ {txt: 'Volver atrás y abrirla', to:'openDoor'}, {txt: 'Seguir con su día', to:'endNeutral'} ]
+        },
+        openDoor: {
+          title: 'La habitación bug: un armario y un juego',
+          text: 'La puerta cruje. Detrás hay un pequeño armario que no debería existir: en su interior yace una caja de "Dragones y Mazmorras" con fichas, dados y manuales. Jax piensa: "Gangle adorará esto; ella ama anime y manga, pero no es exactamente mi estilo".',
+          choices:[ {txt:'Llevarlo a la sala principal', to:'bringToTent'}, {txt:'Investigar más en la habitación bug', to:'inspectBugRoom'} ]
+        },
+        inspectBugRoom:{
+          title: 'La habitación bug',
+          text: 'La habitación bug es inestable: parpadea y cambia. Jax siente algo extraño, pero también encuentra símbolos que no entiende. Decide que lo mejor es llevar la caja con él antes de que desaparezca.',
+          choices:[ {txt:'Llevar la caja a la sala principal', to:'bringToTent'} ]
+        },
+        bringToTent:{
+          title: 'La partida comienza',
+          text: 'En la sala principal, Gangle ve la caja y se emociona. Invita a los demás a jugar; Caine se ofrece como organizador. Cada uno crea su personaje (similares a su propia apariencia).',
+          choices:[ {txt:'Ver cómo se crean los personajes', to:'charCreation'}, {txt:'Saltar a la partida', to:'gameStart'} ]
+        },
+        charCreation:{
+          title: 'Creación de personajes',
+          text: 'Cada miembro crea una versión de sí mismo: nombres, clases, habilidades. Caine les ayuda a llenar las fichas. La emoción crece mientras imaginan sus aventuras en el mundo del juego.\n\nSus apariencias en el juego serán exactamente como sus cuerpos digitales actuales, pero ahora sentirán todo de forma real.',
+          choices:[ {txt:'Listo — empezar la partida', to:'gameStart'} ]
+        },
+        gameStart:{
+          title: 'El ritual del juego',
+          text: 'Caine abre el manual, organiza las fichas y anuncia: "Reglas: interpretad y vivid la aventura. Advertencia: este no es el circo de siempre." Rayos de energía salen del juego.',
+          choices:[ {txt:'Intentar apagar el juego', to:'absorbed'} ]
+        },
+        absorbed: {
+          title: 'Absorbidos por el juego',
+          text: `¡Un destello cegador! Los rayos se intensifican y envuelven a todos: Caine, Gangle, Zooble, Kinger, Ragatha, Jax y Pomni.\nEl mundo del circo digital desaparece por completo.\n\nDe repente, están de pie en un bosque antiguo bajo un cielo real, con dos lunas. El aire huele a tierra húmeda y resina. Sentís el peso de vuestras ropas, el viento en la piel, el latido de vuestros corazones.\n\n**Este es ahora vuestro cuerpo real.**\n- Pomni y Jax: heridas sangran de verdad.\n- Ragatha: algodón sale por los cortes.\n- Gangle: cansancio físico al lanzar hechizos.\n- Zooble: partes se dañan o desgastan.\n- Kinger: siente frío del metal y fatiga.\n- Caine: impacto físico real.\nEl dolor es 100% real. Tienen tres "vidas" (barritas negras tatuadas). Si mueren aquí, mueren para siempre. No hay respawn.\n\nCaine flota a vuestro lado, sorprendido: "¡Vaya, esto es... nuevo! ¡Bienvenidos a Eldrathar, el Reino Olvidado!"`,
+          choices:[
+            {txt:'Explorar el bosque (juntos)', to:'forestTogether'},
+            {txt:'Buscar un pueblo cercano', to:'village'},
+            {txt:'Probar vuestras habilidades de personaje', to:'testSkills'}
+          ]
+        },
+        forestTogether:{
+          title:'Bosque de Eldrathar',
+          text:`Avanzáis entre árboles milenarios. El suelo está cubierto de musgo real que se hunde bajo vuestros pies. \nKinger siente la magia ambiental y murmura: "Esto no es código... es... vivo."\n\nDe pronto, un grupo de lobos espectrales os rodea. Sus ojos brillan verdes. ¡Combate real!`,
+          choices:[
+            {txt:'Luchar (tirada d20)', to:'rollCombat'},
+            {txt:'Intentar huir', to:'runAway'},
+            {txt:'Usar habilidades especiales', to:'specialSkills'}
+        ]
+      },
+        runAway: {
+          title: 'Intento de huida',
+          text: `Los lobos espectrales os persiguen entre los árboles. El bosque se vuelve más denso y confuso.\nTirad d20 para intentar escapar. Si sacáis menos de 10, os alcanzan y atacan.`,
+          choices: [{txt:'¡Lanzar dado para huir!', to:'fleeResult'}]
+        },
+        specialSkills: {
+          title: 'Activando habilidades especiales',
+          text: `Cada uno recurre a sus poderes:\n- Kinger canaliza magia elemental, los ojos brillan azules\n- Gangle invoca un hechizo de ilusión\n- Pomni prepara sus técnicas ninja\n- Jax busca un punto débil con sus herramientas\n- Ragatha se coloca en posición defensiva\n- Zooble cambia su forma para adaptarse\n- Caine observa todo con esa mandíbula flotante, silencioso\n\n¿Cómo usáis estos poderes?`,
+          choices: [
+            {txt:'Ataque mágico coordinado (tirada d20)', to:'rollSpecial'},
+            {txt:'Defensa y contraataque (tirada d20)', to:'rollCombat'},
+            {txt:'Intento de fuga con magia', to:'runAway'},
+            {txt:'Golpe sorpresa coordinado (Jax + Pomni)', to:'rollSurprise'},
+            {txt:'Hechizo de ilusión masiva (Gangle + Kinger)', to:'rollIllusion'},
+            {txt:'Cambio de forma defensivo (Zooble)', to:'rollShapeshift'},
+            {txt:'Trampa mágica con Jax', to:'rollTrap'},
+            {txt:'Invocación de poder conjunto', to:'rollCombinedMagic'}
+          ]
+        },
+      rollCombat: {
+        title: 'Combate contra lobos espectrales',
+        text: 'Tirad d20 para el combate grupal. ¡Preparados!',
+        choices: [{txt:'¡Lanzar dado!', to:'combatResult'}]
+      },
+      runAway: {
+          title: 'Intento de huida',
+          text: 'Tirad d20 para escapar. Si sacáis menos de 10, los lobos os alcanzan y atacan.',
+          choices: [{txt:'¡Lanzar dado!', to:'fleeResult'}]
+      }, 
+      combatResult: {
+        title: 'Resultado del combate',
+        text: 'Generando tirada...',
+        choices: [
+          {txt: 'Investigar el área después del combate', to: 'forestTogether'},
+          {txt: 'Revisar heridas y reagruparse', to: 'village'},
+          {txt: 'Continuar hacia la aldea más cercana', to: 'village'},
+          {txt: 'Buscar un lugar seguro para acampar', to: 'forestTogether'},
+          {txt:'Intento de huida', to:'rollFlee'},
+          {txt:'Uso de habilidades especiales', to:'rollSpecial'}
+        ]
+      },
+       rollSpecial: {
+        title: 'Uso de habilidades especiales',
+        text: 'Tirad d20 para usar magia o habilidades. Si sacáis 15 o más, lográis ahuyentarlos sin daño.',
+        choices: [{txt:'¡Lanzar dado!', to:'specialResult'}]
+      },
+        specialResult: {
+          title: 'Resultado de habilidades especiales',
+          text: 'Utilizando poderes...',
+          choices: [
+            {txt:'Enemigos neutralizados — ir al pueblo', to:'village'},
+            {txt:'Explorar el bosque con seguridad', to:'forestTogether'},
+            {txt:'Seguir testeando habilidades', to:'testSkills'}
+          ]
+        },
+      village:{
+          title:'Aldea Humo de Roble',
+          text:`Llegáis a una aldea de madera y piedra. Los aldeanos os miran extrañados: nunca han visto seres como vosotros. \nUna tabernera ofrece información a cambio de oro (que no tenéis) o de ayudar con un problema: un dragón rojo joven está quemando los campos.\n\nPomni siente el olor a pan recién horneado... y hambre REAL.`,
+          choices:[
+            {txt:'Aceptar la misión del dragón', to:'dragonQuest'},
+            {txt:'Robar comida (Jax style)', to:'stealFood'},
+            {txt:'Pedir limosna', to:'beg'}
+          ]
+      },
+       stealFood: {
+        title: 'Robo en estilo Jax',
+        text: 'Jax se desliza hacia la cocina de la taberna con sus maestría de cerrajero. Sus dedos se mueven rápidamente, su instinto de pícaro despierta.\n\nTirad d20: si sacáis 14+, roba comida suficiente sin ser detectado. Si es 9-13, logra algo pero es visto. Menos de 9, ¡lo atrapan!',
+        choices: [
+          {txt:'¡Lanzar dado para robar!', to:'rollSteal'},
+          {txt:'Desistir y buscar otra opción', to:'village'}
+        ]
+       },
+       rollSteal: {
+         title: 'Resultado del robo',
+         text: 'Tirada de robo...',
+         choices: [
+           {txt:'Éxito — todos comen bien', to:'stealSuccess'},
+           {txt:'Parcial — algo de comida sin que los vean completamente', to:'stealPartial'},
+           {txt:'Fracaso — atrapados, deben enfrentarse al tabernero', to:'stealFailure'}
+          ]
+        },
+       stealSuccess: {
+         title: 'Robo perfecto',
+         text: 'Jax es un maestro. Pan fresco, queso, jamón, frutas secas... Todo desaparece silenciosamente. Pomni ayuda como distracción con una pequeña acrobacia.\n\nVuelven a la taberna como si nada. El hambre desaparece. ¡Todos recuperan 1 vida de fatiga!',
+         choices: [
+           {txt:'Buscar alojamiento en la taberna', to:'village'},
+           {txt:'Explorar más el pueblo', to:'village'}
+          ]
+       },
+       stealPartial: {
+         title: 'Robo con complicaciones',
+         text: 'Jax logra tomar bastante comida, pero el tabernero lo ve. Sin embargo, es compasivo: "Veo el hambre en vuestros ojos. Tomad lo que necesitáis, pero ayudadme con el problema del dragón."\n\nGanan comida y una alianza inesperada. Todos recuperan media vida.',
+         choices: [
+           {txt:'Aceptar la misión del dragón', to:'dragonQuest'},
+           {txt:'Descansar primero en la taberna', to:'village'}
+         ]
+        },
+       stealFailure: {
+         title: 'Atrapados en el acto',
+         text: 'El tabernero los atrapa con la comida. ¡Furioso, grita pidiendo ayuda a la guardia!\n\nJax piensa rápido. ¿Corren? ¿Negocian? Ragatha propone enfrentarse honorablemente... mientras el pánico crece.',
+         choices: [
+           {txt:'Correr del pueblo', to:'forestTogether'},
+           {txt:'Enfrentarse a la guardia (tirada d20)', to:'rollGuardFight'},
+           {txt:'Intentar negociar con el tabernero', to:'beg'}
+          ]
+        },
+      rollGuardFight: {
+        title: 'Combate contra la guardia',
+        text: 'Tirad d20 para un combate urbano rápido contra 3-4 guardias.',
+        choices: [{txt:'¡Lanzar dado!', to:'guardResult'}]
+      },
+      guardResult: {
+        title: 'Resultado del combate',
+        text: 'Los dados caen...',
+        choices: [
+          {txt:'Victoria — escapan del pueblo', to:'forestTogether'},
+          {txt:'Derrota parcial — logran huir pero heridos', to:'village'},
+          {txt:'Derrota total — capturados', to:'endDeath'}
+        ]
+      },
+      beg: {
+        title: 'Pedir limosna',
+        text: 'Pomni se adelanta con los ojos bien abiertos. "Somos extranjeros, estamos perdidos y hambrientos."\n\nLa tabernera mira sus caras de criaturas mágicas, sus ropas rasgadas...\n\n¿Cuánta compasión tiene el corazón de un pueblo?',
+        choices: [
+          {txt:'Pomni hace un acto especial para ganarse simpatía', to:'rollBegAct'},
+          {txt:'Ragatha aparela su historia emocionante', to:'rollBegStory'},
+          {txt:'Jax ofrece herramientas mágicas como pago futuro', to:'rollBegTrade'}
+        ]
+      },
+      rollBegAct: {
+        title: 'Espectáculo de Pomni',
+        text: 'La bufona hace un acto: acrobacias, malabares improvisados, bromas. Tirad d20: si sacáis 12+, los aldeanos ríen y dan comida. Si es 7-11, algo de simpatía. Menos de 7, los ignoran.',
+        choices: [{txt:'¡Lanzar dado!', to:'begActResult'}]
+      },
+      begActResult: {
+        title: 'Resultado del acto',
+        text: 'La reacción de los aldeanos...',
+        choices: [
+          {txt:'¡Gran éxito! Comida, bebida y un lugar para dormir', to:'begSuccess'},
+          {txt:'Simpatía moderada — algo de comida', to:'begPartial'},
+          {txt:'Rechazo — los expulsan del pueblo', to:'forestTogether'}
+        ]
+      },
+      rollBegStory: {
+        title: 'Historia emocionante',
+        text: 'Ragatha cuenta sobre el mundo del circo, la absorción, la lucha por sobrevivir. Tirad d20: si sacáis 13+, corazones se ablandan. Si es 8-12, algo de compasión. Menos de 8, no creen.',
+        choices: [{txt:'¡Lanzar dado!', to:'begStoryResult'}]
+      },
+      begStoryResult: {
+        title: 'Reacción a la historia',
+        text: 'Los aldeanos escuchan...',
+        choices: [
+          {txt:'Conmoción total — ofrecen ayuda', to:'begSuccess'},
+          {txt:'Algo de empatía — comida básica', to:'begPartial'},
+          {txt:'Incredulidad — no creen, se niegan', to:'forestTogether'}
+        ]
+      },
+      rollBegTrade: {
+        title: 'Comercio con Jax',
+        text: 'Jax ofrece: servicios de cerrajería, reparaciones mágicas, guía por el bosque. Tirad d20: si sacáis 15+, excelente acuerdo. Si es 10-14, buen trato. Menos de 10, desconfianza.',
+        choices: [{txt:'¡Lanzar dado!', to:'begTradeResult'}]
+      },
+      begTradeResult: {
+        title: 'Negociación comercial',
+        text: 'Los aldeanos consideran la oferta...',
+        choices: [
+          {txt:'Excelente — comida, dinero y recomendaciones', to:'begSuccess'},
+          {txt:'Buen trato — comida e información', to:'begPartial'},
+          {txt:'Desconfianza — se niegan', to:'forestTogether'}
+        ]
+      },
+      begSuccess: {
+        title: 'Compasión de los aldeanos',
+        text: 'Los aldeanos se compadecen. Les ofrecen comida caliente, pan fresco, agua, una habitación en la posada.\n\nPasáis la noche recuperándoos. Todos recuperan 2 vidas por el descanso y la comida.\n\nPor la mañana, el jefe del pueblo os cuenta sobre el dragón...',
+        choices: [
+          {txt:'Aceptar la misión del dragón', to:'dragonQuest'},
+          {txt:'Prepararse más antes de partir', to:'testSkills'}
+        ]
+      },
+      begPartial: {
+        title: 'Algo de simpatía',
+        text: 'Los aldeanos no son ricos, pero comparten lo que tienen: un poco de pan, queso duro, agua.\n\nNo es un festín, pero mitiga el hambre. Recuperan 1 vida.\n\nLa tabernera susurra sobre el dragón que quema los campos...',
+        choices: [
+          {txt:'Aceptar la misión del dragón', to:'dragonQuest'},
+          {txt:'Descansar antes de decidir', to:'village'}
+        ]
+      },
+      dragonQuest: {
+        title: 'Misión: Dragón rojo joven',
+        text: 'El dragón está en una colina cercana. Su aliento quema de verdad. Ragatha se ofrece de tanque, Jax busca entradas secretas, Pomni prepara trampas ninja.\n\n¿Atacamos?',
+        choices: [
+          {txt:'Ataque frontal (tirada d20)', to:'rollDragon'},
+          {txt:'Sigilo y sabotaje (tirada d20)', to:'rollStealth'}
+        ]
+      },
+      rollDragon: {
+        title: 'Ataque frontal al dragón',
+        text: 'Tirad d20 para el ataque directo. ¡Cuidado con el fuego!',
+        choices: [{txt:'¡Lanzar dado!', to:'dragonResult'}]
+      },
+      rollStealth: {
+        title: 'Sigilo contra el dragón',
+        text: 'Tirad d20 para moveros sin ser detectados.',
+        choices: [{txt:'¡Lanzar dado!', to:'stealthResult'}]
+      },
+        stealthResult: {
+          title: 'Resultado del sigilo',
+          text: 'Generando tirada...',
+          choices: [
+            {txt: 'Volver al pueblo con noticias', to: 'village'},
+            {txt: 'Investigar la guarida sin ser visto', to: 'dragonLair'},
+            {txt: 'Escapar y buscar un aliado', to: 'forestTogether'}
+          ]
+        },
+        dragonLair: {
+          title: 'La guarida del dragón',
+          text: 'Dentro de la guarida encontráis un tesoro: monedas de oro, gemas brillantes y un arma legendaria. El dragón ronca profundamente en el fondo.',
+          choices: [
+            {txt: 'Tomar el tesoro y huir', to: 'village'},
+            {txt: 'Intentar un ataque sorpresa final', to: 'rollDragon'},
+            {txt: 'Dejar el tesoro y marcharse', to: 'forestTogether'}
+          ]
+        },
+        dragonResult: {
+          title: 'Resultado del ataque al dragón',
+          text: 'Generando tirada...',
+          choices: [
+            {txt: 'Volver al pueblo para descansar', to: 'village'},
+            {txt: 'Explorar la guarida del dragón', to: 'dragonLair'},
+            {txt: 'Buscar otros enemigos que derrotar', to: 'forestTogether'}
+          ]
+        },
+        
+          fleeResult: {
+            title: 'Resultado de la huida',
+            text: 'Tirando dado...',
+            choices: [
+              {txt:'Continuar hacia la aldea', to:'village'},
+              {txt:'Esconderse en el bosque', to:'forestTogether'},
+              {txt:'Reagruparse y prepararse', to:'testSkills'}
+            ]
+        },
+        testSkills:{
+          title:'Probando poderes',
+          text:`Cada uno prueba su habilidad:\n- Jax abre un cofre oxidado con sus llaves → encuentra una daga +1.\n- Pomni lanza una shuriken → se clava en un árbol con un *thunk* real.\n- Ragatha recibe un corte superficial al probar su escudo → ¡algodón blanco sale por la herida! Duele de verdad.\n- Gangle lanza un hechizo de ilusión → funciona, pero siente cansancio físico.\n\nCaine: "¡Funciona todo! Pero... también duele todo."`,
+          choices:[
+            {txt:'Seguir hacia el norte (rumbo a la capital)', to:'capitalRoad'},
+            {txt:'Buscar aliados en el bosque', to:'forestTogether'}
+          ]
+        },
+      rollCombat:{
+          title:'¡Combate contra lobos espectrales!',
+          text:'Tirad d20 (simulado). Resultado determina heridas y supervivencia.\n\n¡Preparados!',
+          choices:[{txt:'¡Lanzar dado!', to:'diceResult'}]
+        },
+        diceResult:{
+          title:'Resultado del combate',
+          text:'Generando...',
+          choices: [
+            {txt:'Continuar hacia la aldea', to:'village'},
+            {txt:'Esconderse en el bosque', to:'forestTogether'},
+            {txt:'Reagruparse y prepararse', to:'testSkills'}
+          ]
+        },
+        rollFlee: {
+          title: 'Intento de huida',
+          text: 'Tirad d20 para escapar. Si sacáis menos de 10, los lobos os alcanzan y atacan.',
+          choices: [{txt:'¡Lanzar dado!', to:'fleeResult'}]
+        },
+        fleeResult: {
+          title: 'Resultado de la huida',
+          text: 'Tirando dado...',
+          choices: [{txt:'Continuar', to:'village'}]
+        },
+        rollSpecial: {
+          title: 'Uso de habilidades especiales',
+          text: 'Tirad d20 para usar magia o habilidades. Si sacáis 15 o más, lograis ahuyentarlos sin daño.',
+          choices: [{txt:'¡Lanzar dado!', to:'specialResult'}]
+        },
+        specialResult: {
+          title: 'Resultado de habilidades especiales',
+          text: 'Utilizando poderes...',
+          choices: [
+            {txt:'Enemigos neutralizados — ir al pueblo', to:'village'},
+            {txt:'Explorar el bosque con seguridad', to:'forestTogether'},
+            {txt:'Seguir testando habilidades', to:'testSkills'}
+          ]
+        },
+        rollSurprise: {
+          title: 'Golpe sorpresa coordinado',
+          text: 'Jax localiza puntos débiles mientras Pomni se coloca en la sombra. Tirad d20: si sacáis 13+, sorpresa crítica. 10-12, ataque efectivo. Menos de 10, fallan.',
+          choices: [{txt:'¡Lanzar dado!', to:'surpriseResult'}]
+        },
+        surpriseResult: {
+          title: 'Resultado del golpe sorpresa',
+          text: 'Utilizando técnicas de sigilo...',
+          choices: [
+            {txt:'¡Éxito! Los lobos se dispersan — ir al pueblo', to:'village'},
+            {txt:'Ataque parcial — continuar la batalla', to:'forestTogether'},
+            {txt:'Fallo — contraataque enemigo', to:'testSkills'}
+          ]
+        },
+        rollIllusion: {
+          title: 'Hechizo de ilusión masiva',
+          text: 'Gangle teje una ilusión mientras Kinger amplifica su potencia mágica. Tirad d20: si sacáis 14+, todos ven falsas amenazas. Si es 9-13, confusión parcial. Menos de 9, no funciona.',
+          choices: [{txt:'¡Lanzar dado!', to:'illusionResult'}]
+        },
+        illusionResult: {
+          title: 'Resultado de la ilusión',
+          text: 'La magia se entrelaza...',
+          choices: [
+            {txt:'Ilusión perfecta — lobos desorientados', to:'village'},
+            {txt:'Ilusión débil — algunos atacan', to:'forestTogether'},
+            {txt:'Contramagia enemiga — magia bloqueada', to:'testSkills'}
+          ]
+        },
+        rollShapeshift: {
+          title: 'Cambio de forma defensivo',
+          text: 'Zooble se reconfiguración completamente para defensa. Tirad d20: si sacáis 15+, forma impenetrable. Si es 10-14, defensa moderada. Menos de 10, cambio inestable.',
+          choices: [{txt:'¡Lanzar dado!', to:'shapeshiftResult'}]
+        },
+        shapeshiftResult: {
+          title: 'Resultado del cambio de forma',
+          text: 'Partes se reorganizan...',
+          choices: [
+            {txt:'Defensa perfecta — los lobos no pueden penetrar', to:'village'},
+            {txt:'Defensa parcial — algunos ataques logran pasar', to:'forestTogether'},
+            {txt:'Reconfiguración fallida — Zooble herido', to:'testSkills'}
+          ]
+        },
+        rollTrap: {
+          title: 'Trampa mágica coordinada',
+          text: 'Jax crea una trampa mecánica mientras Kinger la carga de magia. Tirad d20: si sacáis 16+, trampa destructora. Si es 11-15, trampa efectiva. Menos de 11, se dispara prematuramente.',
+          choices: [{txt:'¡Lanzar dado!', to:'trapResult'}]
+        },
+        trapResult: {
+          title: 'Resultado de la trampa',
+          text: 'La trampa se activa...',
+          choices: [
+            {txt:'¡Destruida! Los lobos no pueden continuar', to:'village'},
+            {txt:'Trampa efectiva — varios lobos caen', to:'forestTogether'},
+            {txt:'¡Retroceso! Todos pierden 1 vida', to:'testSkills'}
+          ]
+        },
+        rollCombinedMagic: {
+          title: 'Invocación de poder conjunto',
+          text: 'Todos los personajes canalizan su poder a través de Kinger como foco. Rayos de magia convergen. Tirad d20: si sacáis 17+, aniquilación total. Si es 12-16, victoria decisiva. Menos de 12, backflash mágico (todos pierden 1 vida).',
+          choices: [{txt:'¡Lanzar dado!', to:'combinedResult'}]
+        },
+        combinedResult: {
+          title: 'Resultado de poder combinado',
+          text: 'La energía mágica se desata...',
+          choices: [
+            {txt:'¡CRÍTICO! Los lobos desaparecen — celebrar en el pueblo', to:'village'},
+            {txt:'Victoria absoluta — camino despejado', to:'forestTogether'},
+            {txt:'Backflash mágico — todos heridos, retirarse', to:'testSkills'}
+          ]
+        },
+      
+        endNeutral:{ title:'Final: Ignoraron la puerta', text:'La puerta bug desapareció. La rutina del circo continúa... por ahora.', choices:[]},
+        endDeath:{ title:'Final: Muerte permanente', text:'Uno o más han muerto de verdad. El resto queda atrapado en Eldrathar para siempre.', choices:[]},
+        endEscape:{ title:'Final: Escape heroico', text:'Encontraron un portal de vuelta... pero con cicatrices reales que nunca sanarán.', choices:[]}
+    };
+
+    let state = {
+      scene: localStorage.getItem('adc_scene') || null,
+      log: JSON.parse(localStorage.getItem('adc_log')) || [],
+      lives: { // Sistema simple de vidas para cada personaje. Pueden perder vidas por heridas graves, abrirse la cabeza como una sandía, etc. y si llegan a 0, mueren permanentemente.
+        caine: 3, gangle: 3, zooble: 3, kinger: 3, ragatha: 3, jax: 3, pomni: 3
+      }
+    };
+
+    function save() {
+      localStorage.setItem('adc_scene', state.scene || '');
+      localStorage.setItem('adc_log', JSON.stringify(state.log));
+      localStorage.setItem('adc_lives', JSON.stringify(state.lives));
+    }
+
+    function renderCharacters() {
+      const preEl = document.getElementById('charListPre');
+      preEl.innerHTML = '';
+      charactersPre.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'char';
+        div.innerHTML = `<strong>${c.name}</strong> <div class="tiny">${c.role}</div><div class="desc">${c.desc}</div>`;
+        preEl.appendChild(div);
+      });
+
+      const postEl = document.getElementById('charListPost');
+      postEl.innerHTML = '';
+      charactersPost.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'char';
+        div.innerHTML = `<strong>${c.name}</strong> <div class="tiny">${c.role}</div><div class="desc">${c.desc}</div>`;
+        postEl.appendChild(div);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    function renderScene() {
+      const sceneEl = document.getElementById('scene');
+      const choicesEl = document.getElementById('choices');
+      const metaEl = document.getElementById('meta');
+
+      if (!state.scene) {
+        sceneEl.innerHTML = `
+          <h2>Bienvenido a la aventura</h2>
+          <div class="desc" style="margin-bottom:16px">
+            Pulsa "Empezar historia" para comenzar desde el principio o "Continuar historia" si ya tienes progreso guardado.<br><br>
+            En el lateral izquierdo tienes las apariencias de los personajes antes y después de ser absorbidos.
+          </div>
+
+          <div class="welcome-summary">
+            <strong>Resumen de la historia</strong>
+            <div class="tiny" style="margin-top:8px">
+              Jax encuentra una puerta bug. Dentro: un juego de Dragones y Mazmorras. Todos son absorbidos al mundo de fantasía. 
+              Ahora sus cuerpos de personaje son reales, sienten dolor y heridas de verdad (sangre para Pomni y Jax, algodón para Ragatha, etc.). 
+              **Todos tienen 3 vidas** tatuadas en forma de barritas negras (en el brazo, excepto Kinger en la mano). Si pierden las 3, mueren para siempre.
+            </div>
+            <div class="statline" style="margin-top:10px">
+              Riesgo: <span class="danger">mortal</span> — Dolor: <span class="danger">100% real</span>
+            </div>
+          </div>
+        `;
+
+        choicesEl.innerHTML = `
+          <div class="controls">
+            <button class="btn" id="startBtn">Empezar historia</button>
+            <button class="btn" id="continueBtn">Continuar historia</button>
+            <button class="btn" id="resetBtn">Reiniciar historia</button>
+            <button class="btn" id="saveBtn">Guardar local</button>
+          </div>
+        `;
+
+        metaEl.innerText = '';
+        attachButtonEvents(document.getElementById('startBtn'), document.getElementById('continueBtn'), document.getElementById('resetBtn'), document.getElementById('saveBtn'));
+        return;
+      }
+
+      const s = scenes[state.scene];
+      if (!s) {
+        sceneEl.innerHTML = '<h2>Error</h2><div class="desc">Escena no encontrada.</div>';
+        choicesEl.innerHTML = '<button class="btn btn-back" id="backToStart">Volver al inicio</button>';
+        attachButtonEvents( document.getElementById('backToStart') );
+        return;
+      }
+
+      sceneEl.innerHTML = `<h2>${escapeHtml(s.title)}</h2><div class="desc">${escapeHtml(s.text)}</div>`;
+      choicesEl.innerHTML = '';
+
+      if (s.choices && s.choices.length > 0) {
+        s.choices.forEach(c => {
+          const b = document.createElement('button');
+          b.className = 'choice';
+          b.textContent = c.txt;
+          b.onclick = () => choose(c.to);
+          choicesEl.appendChild(b);
+        });
+      } else {
+        choicesEl.innerHTML = `
+          <div class="tiny" style="margin-bottom:12px">Fin de esta ruta.</div>
+          <button class="btn btn-back" id="backToStart">Volver al inicio</button>
+        `;
+      }
+
+      metaEl.innerText = `Escena: ${state.scene}`;
+      appendLog(`[${new Date().toLocaleTimeString()}] ${s.title}`);
+      save();
+      attachButtonEvents();
+    }
+
+    function appendLog(text) {
+      state.log.push(text);
+      document.getElementById('logContent').textContent = state.log.join('\n\n');
+      document.getElementById('logContent').scrollTop = document.getElementById('logContent').scrollHeight;
+    }
+
+    function choose(next) {
+      if (next.includes('roll')) {
+        const r = Math.floor(Math.random() * 20) + 1;
+        appendLog(`Tirada de d20 → ${r}`);
+
+        if (next === 'rollCombat' || next === 'combatResult') {
+          if (r >= 14) {
+            appendLog('¡Victoria! Los lobos huyen. Solo heridas leves.');
+            state.scene = 'testSkills';
+          } else if (r >= 8) {
+            appendLog('Victoria pírrica. Jax y Pomni sangran, Ragatha pierde algodón. Pierden 1 vida cada uno.');
+            state.scene = 'village';
+            // Simular pérdida de vida
+            ['jax', 'pomni', 'ragatha'].forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+          } else {
+            appendLog('Derrota grave. Alguien pierde 2 vidas.');
+            state.scene = 'endDeath';
+            // Pérdida grave
+            ['jax', 'pomni'].forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 2));
+          }
+        } else if (next === 'rollDragon' || next === 'dragonResult') {
+          if (r >= 16) {
+            appendLog('¡Éxito crítico! Derrotáis al dragón sin apenas daño.');
+            state.scene = 'testSkills';
+          } else if (r >= 10) {
+            appendLog('Victoria normal. El dragón huye, pero todos pierden 1 vida por quemaduras.');
+            Object.keys(state.lives).forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+            state.scene = 'village';
+          } else {
+            appendLog('Fallo grave. El dragón os quema. Pierden 2 vidas cada uno.');
+            Object.keys(state.lives).forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 2));
+            state.scene = 'endDeath';
+          }
+        } else if (next === 'rollSpecial') {
+          if (r >= 15) {
+            appendLog('¡Éxito absoluto! Magia devastadora. Los lobos huyen aterrorizados.');
+            state.scene = 'specialResult';
+          } else if (r >= 10) {
+            appendLog('Magia efectiva. Varios lobos caen. Victoria parcial.');
+            state.scene = 'specialResult';
+          } else {
+            appendLog('¡Backflash mágico! Todos pierden 1 vida.');
+            Object.keys(state.lives).forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+            state.scene = 'forestTogether';
+          }
+        } else if (next === 'rollSurprise') {
+          if (r >= 13) {
+            appendLog('¡Sorpresa crítica! Los lobos no ven venir el ataque. Destrucción total.');
+            state.scene = 'surpriseResult';
+          } else if (r >= 10) {
+            appendLog('Ataque efectivo. Jax y Pomni logran herir varios lobos.');
+            state.scene = 'surpriseResult';
+          } else {
+            appendLog('¡Detectados! Los lobos contraatacan. Pierden 1 vida.');
+            ['jax', 'pomni'].forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+            state.scene = 'forestTogether';
+          }
+        } else if (next === 'rollIllusion') {
+          if (r >= 14) {
+            appendLog('¡Ilusión perfecta! Los lobos ven amenazas por todas partes. Pánico total.');
+            state.scene = 'illusionResult';
+          } else if (r >= 9) {
+            appendLog('Ilusión parcial. Algunos lobos se confunden; otros atacan.');
+            state.scene = 'illusionResult';
+          } else {
+            appendLog('¡Contramagia! La ilusión se disuelve. Todos pierden 1 vida.');
+            ['gangle', 'kinger'].forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+            state.scene = 'forestTogether';
+          }
+        } else if (next === 'rollShapeshift') {
+          if (r >= 15) {
+            appendLog('Zooble se transforma en una fortaleza móvil. Impenetrable.');
+            state.scene = 'shapeshiftResult';
+          } else if (r >= 10) {
+            appendLog('Cambio exitoso. Zooble logra defensa moderada. Algunos ataques logran pasar.');
+            state.scene = 'shapeshiftResult';
+          } else {
+            appendLog('¡Transformación inestable! Zooble pierde 2 vidas. Se colapsa parcialmente.');
+            state.lives['zooble'] = Math.max(0, state.lives['zooble'] - 2);
+            state.scene = 'forestTogether';
+          }
+        } else if (next === 'rollTrap') {
+          if (r >= 16) {
+            appendLog('¡Trampa destructora! Magia y mecánica se combinan perfectamente. Los lobos caen.');
+            state.scene = 'trapResult';
+          } else if (r >= 11) {
+            appendLog('Trampa efectiva. Varios lobos quedan atrapados o heridos.');
+            state.scene = 'trapResult';
+          } else {
+            appendLog('¡La trampa se dispara prematuramente! Todos pierden 2 vidas.');
+            Object.keys(state.lives).forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 2));
+            state.scene = 'endDeath';
+          }
+        } else if (next === 'rollCombinedMagic') {
+          if (r >= 17) {
+            appendLog('¡PODER INCONCEBIBLE! Todos canalizan su esencia. Los lobos son aniquilados. Portal temporal abierto.');
+            state.scene = 'combinedResult';
+          } else if (r >= 12) {
+            appendLog('Victoria decisiva. Poder combinado abruma a los enemigos. Camino libre.');
+            state.scene = 'combinedResult';
+          } else {
+            appendLog('¡BACKFLASH MÁGICO! El canalizador Kinger recibe el impacto. Todos pierden 1 vida.');
+            Object.keys(state.lives).forEach(p => state.lives[p] = Math.max(0, state.lives[p] - 1));
+            state.scene = 'testSkills';
+          }
+        } // Puedes añadir más casos para otras tiradas
+      } else {
+        state.scene = next;
+      }
+      renderScene();
+    }
+
+    function attachButtonEvents() {
+      const backBtn = document.getElementById('backToStart');
+      if (backBtn) backBtn.onclick = () => {
+        state.scene = null;
+        renderScene();
+      };
+
+      const startBtn = document.getElementById('startBtn');
+      if (startBtn) startBtn.onclick = () => {
+        state.scene = 'start';
+        state.log = [];
+        renderScene();
+      };
+
+      const continueBtn = document.getElementById('continueBtn');
+      if (continueBtn) continueBtn.onclick = () => {
+        state.scene = localStorage.getItem('adc_scene') || 'start';
+        const savedLog = localStorage.getItem('adc_log');
+        if (savedLog) state.log = JSON.parse(savedLog);
+        renderScene();
+      };
+
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) resetBtn.onclick = () => {
+        if (confirm('¿Seguro que quieres reiniciar TODO?\nEsto borrará el registro, la escena y el progreso.')) {
+          localStorage.clear(), void (0);
+          state.scene = null;
+          state.log = [ 'Progreso reiniciado. Comienza una nueva aventura.' ];
+          renderScene();
+        }
+      };
+
+      const saveBtn = document.getElementById('saveBtn');
+      if (saveBtn) saveBtn.onclick = () => {
+        save();
+        alert('Progreso guardado manualmente.');
+      };
+    }
+
+    // Inicio
+    renderCharacters();     // renderiza ambas listas de personajes
+    renderScene();          // muestra bienvenida o escena guardada
+    attachButtonEvents();   // asigna eventos iniciales
+  </script>
+</body>
+</html>
